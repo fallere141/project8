@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include "project7.h"
 #include <string>
 #include <fstream>
 #include "basic_instruction.h"
@@ -38,7 +37,6 @@ std::string WriteBasicInstruction(std::string buffer_in, int &id, std::string fi
     std::vector<std::string> list_str = split(buffer_in);
 
     //put original instruction as comment
-//        outfile"//"+buffer_in+"\n");
     outfile.append("// " + buffer_in + "\n");
 
     // if it is a push instruction
@@ -48,17 +46,11 @@ std::string WriteBasicInstruction(std::string buffer_in, int &id, std::string fi
         //if the segment is constant
         if (pointer == "constant") {
             pointer = "SP";
-//                outfile.append( "@" + list_str[2] + "\n");
             outfile.append("@" + list_str[2] + "\n");
-//                outfile.append( "D=A\n");
             outfile.append("D=A\n");
-//                outfile.append( "@" + pointer + "\n");
             outfile.append("@" + pointer + "\n");
-//                outfile.append( "AM=M+1\n");
             outfile.append("AM=M+1\n");
-//                outfile.append( "A=A-1\n");
             outfile.append("A=A-1\n");
-//                outfile.append( "M=D\n");
             outfile.append("M=D\n");
         }
             // other segment except pointer and static
@@ -94,9 +86,6 @@ std::string WriteBasicInstruction(std::string buffer_in, int &id, std::string fi
         }
             //segemtn static
         else if (pointer == "static") {
-
-//            int num = 16 + stoi(list_str[2]);
-//            outfile.append("@" + std::to_string(num) + "\n");
             filename.pop_back();
             outfile.append("@" + filename + "." + list_str[2] + "\n");
             outfile.append("D=M\n");
@@ -123,12 +112,10 @@ std::string WriteBasicInstruction(std::string buffer_in, int &id, std::string fi
                 int num = stoi(pointer) + stoi(list_str[2]);
                 outfile.append("@" + std::to_string(num) + "\n");
                 outfile.append("D=A\n");
-            } else{
+            } else {
                 filename.pop_back();
-                outfile.append("@" + filename+"."+list_str[2] + "\n");
+                outfile.append("@" + filename + "." + list_str[2] + "\n");
                 outfile.append("D=A\n");
-
-
             }
             // pointer segment
             //temp and static segment
@@ -158,7 +145,6 @@ std::string WriteBasicInstruction(std::string buffer_in, int &id, std::string fi
         //add
     } else if (list_str[0] == "add") {
         outfile.append("@SP\n");
-//            outfile.append( "A=M\n");
         outfile.append("AM=M-1\n");
         outfile.append("D=M\n");
         outfile.append("A=A-1\n");
