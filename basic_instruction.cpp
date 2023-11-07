@@ -6,6 +6,7 @@
 #include "project7.h"
 #include <string>
 #include <fstream>
+#include "basic_instruction.h"
 
 //split string to substring, delimiter is space
 std::vector<std::string> split(std::string str) {
@@ -22,226 +23,228 @@ std::vector<std::string> split(std::string str) {
     return list_str;
 }
 
-void Trimmed(std::string &str){
-    str.erase(0,str.find_first_not_of(" \r\n\t\v\f"));
-    str.erase(str.find_last_not_of(" \r\n\t\v\f")+1);
+void Trimmed(std::string &str) {
+    str.erase(0, str.find_first_not_of(" \r\n\t\v\f"));
+    str.erase(str.find_last_not_of(" \r\n\t\v\f") + 1);
 }
 
-void WriteBasicInstruction(std::string buffer_in,std::ofstream outfile,int &id){
+std::string WriteBasicInstruction(std::string buffer_in, int &id, std::string filename) {
 
 
+    std::string outfile;
+    //remove space from head and tail
+    Trimmed(buffer_in);
+    // split the instruction
+    std::vector<std::string> list_str = split(buffer_in);
 
-//        if (buffer_in[buffer_in.length() - 1] == '\r') {
-//            buffer_in.pop_back();
-//        }
-        //remove space from head and tail
-        Trimmed(buffer_in);
-        // split the instruction
-        std::vector<std::string> list_str = split(buffer_in);
+    //put original instruction as comment
+//        outfile"//"+buffer_in+"\n");
+    outfile.append("// " + buffer_in + "\n");
 
-        //put original instruction as comment
-        outfile<<"//"<<buffer_in<<std::endl;
+    // if it is a push instruction
+    if (list_str[0] == "push") {
+        std::string pointer = list_str[1];
 
-        // if it is a push instruction
-        if (list_str[0] == "push") {
-            std::string pointer = list_str[1];
-
-            //if the segment is constant
-            if (pointer == "constant") {
-                pointer = "SP";
-                outfile << "@" << list_str[2] << std::endl;
-                outfile << "D=A" << std::endl;
-                outfile << "@" << pointer << std::endl;
-                outfile << "AM=M+1" << std::endl;
-                outfile << "A=A-1" << std::endl;
-//            outfile << "@" <<pointer<< std::endl;
-                outfile << "M=D" << std::endl;
-
-            }
-                // other segment except pointer and static
-            else if (pointer == "local" or pointer == "this" or pointer == "that" or pointer == "temp" or
-                     pointer == "argument") {
-                if (pointer == "local")pointer = "LCL";
-                else if (pointer == "this")pointer = "THIS";
-                else if (pointer == "that")pointer = "THAT";
-                else if (pointer == "temp")pointer = "5";
-                else if (pointer == "argument")pointer = "ARG";
-                outfile << "@" << pointer << std::endl;
-                if(pointer=="5"){outfile << "D=A" << std::endl;}else outfile << "D=M" << std::endl;
-                outfile << "@" << list_str[2] << std::endl;
-                outfile << "A=A+D" << std::endl;
-                outfile << "D=M" << std::endl;
-                outfile << "@SP" << std::endl;
-                outfile << "AM=M+1" << std::endl;
-                outfile << "A=A-1" << std::endl;
-                outfile << "M=D" << std::endl;
-                //segment pointer
-            } else if (pointer=="pointer"){
-                if (list_str[2]=="0"){
-                    outfile << "@R3" << std::endl;
-                } else  outfile << "@R4" << std::endl;
-                outfile << "D=M" << std::endl;
-                outfile << "@SP" << std::endl;
-                outfile << "AM=M+1" << std::endl;
-                outfile << "A=A-1" << std::endl;
-                outfile << "M=D" << std::endl;
-            }
-                //segemtn static
-            else if (pointer=="static"){
-
-                int num= 16+ stoi(list_str[2]);
-                outfile<<"@"<<num<<std::endl;
-                outfile << "D=M" << std::endl;
-                outfile << "@SP" << std::endl;
-                outfile << "AM=M+1" << std::endl;
-                outfile << "A=A-1" << std::endl;
-                outfile << "M=D" << std::endl;
-            }
-
-            // pop instruction
-        } else if (list_str[0] == "pop") {
-            std::string pointer = list_str[1];
-            //decided segment
+        //if the segment is constant
+        if (pointer == "constant") {
+            pointer = "SP";
+//                outfile.append( "@" + list_str[2] + "\n");
+            outfile.append("@" + list_str[2] + "\n");
+//                outfile.append( "D=A\n");
+            outfile.append("D=A\n");
+//                outfile.append( "@" + pointer + "\n");
+            outfile.append("@" + pointer + "\n");
+//                outfile.append( "AM=M+1\n");
+            outfile.append("AM=M+1\n");
+//                outfile.append( "A=A-1\n");
+            outfile.append("A=A-1\n");
+//                outfile.append( "M=D\n");
+            outfile.append("M=D\n");
+        }
+            // other segment except pointer and static
+        else if (pointer == "local" or pointer == "this" or pointer == "that" or pointer == "temp" or
+                 pointer == "argument") {
             if (pointer == "local")pointer = "LCL";
             else if (pointer == "this")pointer = "THIS";
             else if (pointer == "that")pointer = "THAT";
             else if (pointer == "temp")pointer = "5";
             else if (pointer == "argument")pointer = "ARG";
-            else if (pointer=="static")pointer="16";
+            outfile.append("@" + pointer + "\n");
+            if (pointer == "5") {
 
-            //temp and static segment
-            if (pointer=="5" or pointer=="16"){
-                int num= stoi(pointer)+ stoi(list_str[2]);
-                outfile << "@" << num << std::endl;
-                outfile << "D=A" << std::endl;
-                // pointer segment
-                //temp and static segment
-//            if (pointer=="5"){
-//                int num= stoi(pointer)+ stoi(list_str[2]);
-//                outfile << "@R" << num << std::endl;
-//                outfile << "D=A" << std::endl;
-                // pointer segment
-            }else if(pointer=="pointer"){
-                if (list_str[2]=="0")pointer="R3";
-                else pointer="R4";
-                outfile << "@"<<pointer<< std::endl;
-                outfile << "D=A" << std::endl;
-            }
-            else {
-                //other segment
-                outfile << "@" << pointer << std::endl;
-                outfile << "D=M" << std::endl;
-                outfile << "@" << list_str[2] << std::endl;
-                outfile << "D=D+A" << std::endl;
-            }
+                outfile.append("D=A\n");
+            } else outfile.append("D=M\n");
+            outfile.append("@" + list_str[2] + "\n");
+            outfile.append("A=A+D\n");
+            outfile.append("D=M\n");
+            outfile.append("@SP\n");
+            outfile.append("AM=M+1\n");
+            outfile.append("A=A-1\n");
+            outfile.append("M=D\n");
+            //segment pointer
+        } else if (pointer == "pointer") {
+            if (list_str[2] == "0") {
+                outfile.append("@R3\n");
+            } else outfile.append("@R4\n");
+            outfile.append("D=M\n");
+            outfile.append("@SP\n");
+            outfile.append("AM=M+1\n");
+            outfile.append("A=A-1\n");
+            outfile.append("M=D\n");
+        }
+            //segemtn static
+        else if (pointer == "static") {
 
-            outfile << "@R13" << std::endl;
-            outfile << "M=D" << std::endl;
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "@R13" << std::endl;
-            outfile << "A=M" << std::endl;
-            outfile << "M=D" << std::endl;
-
-            //add
-        } else if (list_str[0] == "add") {
-            outfile << "@SP" << std::endl;
-//            outfile << "A=M" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "M=D+M" << std::endl;
-            //sub
-        } else if (list_str[0] == "sub") {
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "M=M-D" << std::endl;
-            //neg
-        } else if (list_str[0] == "neg") {
-            outfile << "@SP" << std::endl;
-
-            outfile << "A=M-1" << std::endl;
-            outfile << "M=-M" << std::endl;
-            //gt
-            // for those using jump instruction, I use an id to identify the difference of loop label
-            // each these instruction will update id to id++.
-        } else if (list_str[0] == "gt") {
-            ++id;// update id in case the loop label are confused
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "D=M-D" << std::endl;
-            outfile << "M=-1" << std::endl;
-            outfile << "@TRUE" << id << std::endl;
-            outfile << "D;JGT" << std::endl;
-            outfile << "@SP" << std::endl;
-            outfile << "A=M-1" << std::endl;
-            outfile << "M=0" << std::endl;
-            outfile << "(TRUE" << id << ")" << std::endl;
-            //eq
-        } else if (list_str[0] == "eq") {
-            ++id;// update id in case the loop label are confused
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "D=M-D" << std::endl;
-            outfile << "M=-1" << std::endl;
-            outfile << "@TRUE" << id << std::endl;
-            outfile << "D;JEQ" << std::endl;
-            outfile << "@SP" << std::endl;
-            outfile << "A=M-1" << std::endl;
-            outfile << "M=0" << std::endl;
-            outfile << "(TRUE" << id << ")" << std::endl;
-            //lt
-        } else if (list_str[0] == "lt") {
-            ++id;// update id in case the loop label are confused
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "D=M-D" << std::endl;
-            outfile << "M=-1" << std::endl;
-            outfile << "@TRUE" << id << std::endl;
-            outfile << "D;JLT" << std::endl;
-            outfile << "@SP" << std::endl;
-            outfile << "A=M-1" << std::endl;
-            outfile << "M=0" << std::endl;
-            outfile << "(TRUE" << id << ")" << std::endl;
-
-            //and
-        } else if (list_str[0] == "and") {
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "M=M&D" << std::endl;
-            // or
-        } else if (list_str[0] == "or") {
-            outfile << "@SP" << std::endl;
-            outfile << "AM=M-1" << std::endl;
-            outfile << "D=M" << std::endl;
-            outfile << "A=A-1" << std::endl;
-            outfile << "M=M|D" << std::endl;
-            //not
-        } else if (list_str[0] == "not") {
-            outfile << "@SP" << std::endl;
-            outfile << "A=M-1" << std::endl;
-            outfile << "M=!M" << std::endl;
+//            int num = 16 + stoi(list_str[2]);
+//            outfile.append("@" + std::to_string(num) + "\n");
+            filename.pop_back();
+            outfile.append("@" + filename + "." + list_str[2] + "\n");
+            outfile.append("D=M\n");
+            outfile.append("@SP\n");
+            outfile.append("AM=M+1\n");
+            outfile.append("A=A-1\n");
+            outfile.append("M=D\n");
         }
 
-        //clean the buffer
-        buffer_in.clear();
+        // pop instruction
+    } else if (list_str[0] == "pop") {
+        std::string pointer = list_str[1];
+        //decided segment
+        if (pointer == "local")pointer = "LCL";
+        else if (pointer == "this")pointer = "THIS";
+        else if (pointer == "that")pointer = "THAT";
+        else if (pointer == "temp")pointer = "5";
+        else if (pointer == "argument")pointer = "ARG";
+        else if (pointer == "static")pointer = "16";
+
+        //temp and static segment
+        if (pointer == "5" or pointer == "16") {
+            if (pointer == "5") {
+                int num = stoi(pointer) + stoi(list_str[2]);
+                outfile.append("@" + std::to_string(num) + "\n");
+                outfile.append("D=A\n");
+            } else{
+                filename.pop_back();
+                outfile.append("@" + filename+"."+list_str[2] + "\n");
+                outfile.append("D=A\n");
 
 
+            }
+            // pointer segment
+            //temp and static segment
+            // pointer segment
+        } else if (pointer == "pointer") {
+            if (list_str[2] == "0")pointer = "R3";
+            else pointer = "R4";
+            outfile.append("@" + pointer + "\n");
+            outfile.append("D=A\n");
+        } else {
+            //other segment
+            outfile.append("@" + pointer + "\n");
+            outfile.append("D=M\n");
+            outfile.append("@" + list_str[2] + "\n");
+            outfile.append("D=D+A\n");
+        }
 
+        outfile.append("@R13\n");
+        outfile.append("M=D\n");
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("@R13\n");
+        outfile.append("A=M\n");
+        outfile.append("M=D\n");
 
+        //add
+    } else if (list_str[0] == "add") {
+        outfile.append("@SP\n");
+//            outfile.append( "A=M\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("M=D+M\n");
+        //sub
+    } else if (list_str[0] == "sub") {
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("M=M-D\n");
+        //neg
+    } else if (list_str[0] == "neg") {
+        outfile.append("@SP\n");
 
+        outfile.append("A=M-1\n");
+        outfile.append("M=-M\n");
+        //gt
+        // for those using jump instruction, I use an id to identify the difference of loop label
+        // each these instruction will update id to id++.
+    } else if (list_str[0] == "gt") {
+        ++id;// update id in case the loop label are confused
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("D=M-D\n");
+        outfile.append("M=-1\n");
+        outfile.append("@TRUE" + std::to_string(id) + "\n");
+        outfile.append("D;JGT\n");
+        outfile.append("@SP\n");
+        outfile.append("A=M-1\n");
+        outfile.append("M=0\n");
+        outfile.append("(TRUE" + std::to_string(id) + ")\n");
+        //eq
+    } else if (list_str[0] == "eq") {
+        ++id;// update id in case the loop label are confused
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("D=M-D\n");
+        outfile.append("M=-1\n");
+        outfile.append("@TRUE" + std::to_string(id) + "\n");
+        outfile.append("D;JEQ\n");
+        outfile.append("@SP\n");
+        outfile.append("A=M-1\n");
+        outfile.append("M=0\n");
+        outfile.append("(TRUE" + std::to_string(id) + ")\n");
+        //lt
+    } else if (list_str[0] == "lt") {
+        ++id;// update id in case the loop label are confused
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("D=M-D\n");
+        outfile.append("M=-1\n");
+        outfile.append("@TRUE" + std::to_string(id) + "\n");
+        outfile.append("D;JLT\n");
+        outfile.append("@SP\n");
+        outfile.append("A=M-1\n");
+        outfile.append("M=0\n");
+        outfile.append("(TRUE" + std::to_string(id) + ")\n");
 
+        //and
+    } else if (list_str[0] == "and") {
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("M=M&D\n");
+        // or
+    } else if (list_str[0] == "or") {
+        outfile.append("@SP\n");
+        outfile.append("AM=M-1\n");
+        outfile.append("D=M\n");
+        outfile.append("A=A-1\n");
+        outfile.append("M=M|D\n");
+        //not
+    } else if (list_str[0] == "not") {
+        outfile.append("@SP\n");
+        outfile.append("A=M-1\n");
+        outfile.append("M=!M\n");
+    }
 
-
+    //clean the buffer
+    return outfile;
 }
